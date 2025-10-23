@@ -1,0 +1,102 @@
+[gd_scene load_steps=15 format=3 uid="uid://dlofuqmjsiyk"]
+
+[ext_resource type="Texture2D" uid="uid://c8j5v5ntp8806" path="res://artwork/TDS/sEnemy_strip7.png" id="1_5vr6f"]
+[ext_resource type="Script" uid="uid://sw7m72bjmkq4" path="res://mob.gd" id="1_6psrb"]
+[ext_resource type="Texture2D" uid="uid://di41l70v1phor" path="res://artwork/TDS/sEnemyDead.png" id="3_j6hrw"]
+[ext_resource type="AudioStream" uid="uid://dsckcbkyljncw" path="res://artwork/TDS/aDeath.wav" id="4_fnls6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_j1abo"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(0, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xegj1"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(40, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nsf7d"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(80, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_yseuc"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(120, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s7ic2"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(160, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_np0sg"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(200, 0, 40, 40)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0wa66"]
+atlas = ExtResource("1_5vr6f")
+region = Rect2(240, 0, 40, 40)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_v7iyh"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_j1abo")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xegj1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_nsf7d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_yseuc")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s7ic2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_np0sg")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0wa66")
+}],
+"loop": true,
+"name": &"default",
+"speed": 10.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_k4j33"]
+radius = 13.1529
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_qvixq"]
+radius = 21.6667
+
+[node name="Mob" type="CharacterBody2D" groups=["mob"]]
+scale = Vector2(3, 3)
+collision_layer = 4
+collision_mask = 5
+script = ExtResource("1_6psrb")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_v7iyh")
+autoplay = "default"
+frame_progress = 0.995277
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_k4j33")
+
+[node name="SEnemyDead" type="Sprite2D" parent="."]
+visible = false
+z_index = -1
+scale = Vector2(2, 2)
+texture = ExtResource("3_j6hrw")
+
+[node name="deathSound" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("4_fnls6")
+
+[node name="AttackZone" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackZone"]
+shape = SubResource("CircleShape2D_qvixq")
+
+[connection signal="body_entered" from="AttackZone" to="." method="_on_attack_zone_body_entered"]

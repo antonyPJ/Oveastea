@@ -1,0 +1,286 @@
+[gd_scene load_steps=21 format=3 uid="uid://c7xwmgkjd47im"]
+
+[ext_resource type="Script" uid="uid://d4cmpgr6ehhre" path="res://world.gd" id="1_jelkd"]
+[ext_resource type="Texture2D" uid="uid://b7f8x7sypjbnr" path="res://artwork/TDS/sMap.png" id="2_3ofuf"]
+[ext_resource type="FontFile" uid="uid://bjokwvuj78xo8" path="res://artwork/TDS/font/Not Jam Chunky Sans 6.ttf" id="2_ioo17"]
+[ext_resource type="Texture2D" uid="uid://eq25ob23pfwt" path="res://artwork/TDS/sWall.png" id="3_8880l"]
+[ext_resource type="Texture2D" uid="uid://cs3viyard07de" path="res://artwork/TDS/sBg.png" id="4_abcca"]
+[ext_resource type="Texture2D" uid="uid://bswxgf4js2kmn" path="res://artwork/TDS/tree1.png" id="4_pkg7o"]
+[ext_resource type="PackedScene" uid="uid://ce8snnay0wu8w" path="res://player.tscn" id="5_lh7dy"]
+[ext_resource type="PackedScene" uid="uid://bo2k8ydthg53k" path="res://blood_surface.tscn" id="6_blood_surface"]
+[ext_resource type="Script" uid="uid://bfv2oxamdexlp" path="res://enemy_spawner.gd" id="9_ioo17"]
+[ext_resource type="Script" uid="uid://58fq2x1rg3ox" path="res://game_over.gd" id="10_wse8f"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_pkg7o"]
+font = ExtResource("2_ioo17")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_o8lj6"]
+size = Vector2(319, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_icxd8"]
+size = Vector2(22.6667, 301.333)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5wqeq"]
+size = Vector2(322.333, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_23n1t"]
+size = Vector2(20, 285)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_pkg7o"]
+size = Vector2(5.81711, 20.5988)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ic0uy"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_k3n1d"]
+bg_color = Color(0.31802, 0.31802, 0.31802, 0.392157)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 5
+shadow_offset = Vector2(0, 3.41)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2o6r5"]
+bg_color = Color(0.0800684, 0.0770949, 0.0653907, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 5
+shadow_offset = Vector2(0, 3.41)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_70uel"]
+bg_color = Color(1, 0.980392, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_size = 5
+shadow_offset = Vector2(0, 3.41)
+
+[node name="World" type="Node2D" groups=["world"]]
+position = Vector2(1, -1)
+script = ExtResource("1_jelkd")
+
+[node name="Score" type="CanvasLayer" parent="."]
+layer = 100
+follow_viewport_scale = 58.143
+
+[node name="ScoreLabel" type="Label" parent="Score" groups=["score_label"]]
+show_behind_parent = true
+z_index = 100
+offset_left = 16.0
+offset_top = 14.0
+offset_right = 125.0
+offset_bottom = 37.0
+scale = Vector2(1.91741, 1.83638)
+size_flags_horizontal = 4
+size_flags_vertical = 1
+text = "Score: 0"
+label_settings = SubResource("LabelSettings_pkg7o")
+
+[node name="WaveLabel" type="Label" parent="Score" groups=["wave_label"]]
+show_behind_parent = true
+z_index = 100
+offset_left = 466.0
+offset_top = 8.0
+offset_right = 575.0
+offset_bottom = 31.0
+scale = Vector2(1.91741, 1.83638)
+size_flags_horizontal = 4
+size_flags_vertical = 1
+text = "Wave: 1"
+label_settings = SubResource("LabelSettings_pkg7o")
+
+[node name="SMap" type="Sprite2D" parent="."]
+z_index = -2
+scale = Vector2(13.7525, 12.2139)
+texture = ExtResource("2_3ofuf")
+
+[node name="StaticBody2D" type="StaticBody2D" parent="SMap"]
+
+[node name="SWall" type="Sprite2D" parent="SMap/StaticBody2D"]
+texture = ExtResource("3_8880l")
+
+[node name="SWall2" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(81.876, -69.2653)
+scale = Vector2(0.441646, 0.440587)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(24, 3.5, 80, 124.5)
+
+[node name="SWall3" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(91.1107, 61.2417)
+scale = Vector2(0.442, 0.44)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(256, 264, 120, 120)
+
+[node name="SWall4" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(-73.4412, -64.6804)
+scale = Vector2(0.441646, 0.440587)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(136, 152, 112, 104)
+
+[node name="SWall5" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(-76.1316, 74.9146)
+scale = Vector2(0.441646, 0.440587)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(128, 416, 120, 96)
+
+[node name="SWall6" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(5.74442, -66.1541)
+scale = Vector2(0.441646, 0.440587)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(144, 280, 96, 96)
+
+[node name="SWall7" type="Sprite2D" parent="SMap/StaticBody2D"]
+position = Vector2(14.1792, 65.4991)
+scale = Vector2(0.441646, 0.440587)
+texture = ExtResource("4_pkg7o")
+region_enabled = true
+region_rect = Rect2(392, 264, 120, 120)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(-1.5, -149.667)
+shape = SubResource("RectangleShape2D_o8lj6")
+debug_color = Color(1, 0.337255, 0.4, 0.419608)
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(-150.667, 9.66667)
+shape = SubResource("RectangleShape2D_icxd8")
+debug_color = Color(1, 0.337255, 0.4, 0.419608)
+
+[node name="CollisionShape2D3" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(3.16667, 150.667)
+shape = SubResource("RectangleShape2D_5wqeq")
+
+[node name="CollisionShape2D4" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(150.333, 1.83333)
+shape = SubResource("RectangleShape2D_23n1t")
+
+[node name="CollisionShape2D6" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(-74.0229, -53.6384)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CollisionShape2D7" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(-75.1863, 84.9033)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CollisionShape2D8" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(6.72605, -54.9374)
+scale = Vector2(1, 0.843856)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CollisionShape2D9" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(11.0525, 81.4236)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CollisionShape2D10" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(92.4923, 79.4177)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CollisionShape2D11" type="CollisionShape2D" parent="SMap/StaticBody2D"]
+position = Vector2(81.876, -52.8087)
+shape = SubResource("RectangleShape2D_pkg7o")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = -50
+
+[node name="TextureRect" type="TextureRect" parent="CanvasLayer"]
+show_behind_parent = true
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -1740.0
+offset_top = -1908.0
+offset_right = -676.0
+offset_bottom = -844.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(2, 2)
+texture = ExtResource("4_abcca")
+stretch_mode = 1
+
+[node name="Player" parent="." instance=ExtResource("5_lh7dy")]
+position = Vector2(57, -38)
+scale = Vector2(6, 6)
+
+[node name="Camera2D2" type="Camera2D" parent="Player"]
+position_smoothing_enabled = true
+
+[node name="BloodSurface" parent="." groups=["blood_surface"] instance=ExtResource("6_blood_surface")]
+position = Vector2(2, 0)
+
+[node name="EnemySpawner" type="Node2D" parent="."]
+script = ExtResource("9_ioo17")
+
+[node name="GameOver" type="CanvasLayer" parent="." groups=["game_over"]]
+script = ExtResource("10_wse8f")
+
+[node name="Panel" type="Panel" parent="GameOver"]
+offset_right = 722.0
+offset_bottom = 720.0
+scale = Vector2(1.00453, 1.00377)
+
+[node name="Label" type="Label" parent="GameOver"]
+offset_left = 90.0
+offset_top = 137.0
+offset_right = 658.0
+offset_bottom = 233.0
+theme_override_fonts/font = ExtResource("2_ioo17")
+theme_override_font_sizes/font_size = 60
+text = "Game Over"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="GameOver"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -154.0
+offset_top = -32.0
+offset_right = 93.0
+offset_bottom = 18.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.1899, 1.13619)
+theme_override_constants/separation = 46
+
+[node name="Start" type="Button" parent="GameOver/HBoxContainer" groups=["game_over"]]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_ioo17")
+theme_override_font_sizes/font_size = 36
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ic0uy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_k3n1d")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2o6r5")
+theme_override_styles/normal = SubResource("StyleBoxFlat_70uel")
+text = "Restart"
+
+[node name="Quit" type="Button" parent="GameOver/HBoxContainer" groups=["game_over"]]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_hover_pressed_color = Color(0, 0, 0, 1)
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+theme_override_colors/font_focus_color = Color(0, 0, 0, 1)
+theme_override_colors/font_pressed_color = Color(0, 0, 0, 1)
+theme_override_fonts/font = ExtResource("2_ioo17")
+theme_override_font_sizes/font_size = 36
+theme_override_styles/focus = SubResource("StyleBoxEmpty_ic0uy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_k3n1d")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_2o6r5")
+theme_override_styles/normal = SubResource("StyleBoxFlat_70uel")
+text = "Quit"
+
+[connection signal="pressed" from="GameOver/HBoxContainer/Start" to="GameOver" method="_on_start_pressed"]
+[connection signal="pressed" from="GameOver/HBoxContainer/Quit" to="GameOver" method="_on_quit_pressed"]
