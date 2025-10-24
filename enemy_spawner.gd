@@ -111,7 +111,6 @@ func spawn_enemy():
 	
 	enemies_spawned += 1
 	enemies_alive += 1
-	
 
 func get_spawn_position() -> Vector2:
 	# Limites do mapa (ajuste conforme seu mapa)
@@ -169,7 +168,6 @@ func get_spawn_position() -> Vector2:
 		var distance_to_player = spawn_pos.distance_to(player.global_position)
 		if distance_to_player >= safe_distance_from_player:
 			return spawn_pos
-		else:
 	
 	# Se não encontrou posição válida após todas as tentativas, usa fallback seguro
 	var angle = randf() * TAU
