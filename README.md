@@ -80,7 +80,7 @@ Este projeto utiliza o sistema de partículas de sangue desenvolvido por [trolog
 O tutorial original está disponível em: https://youtu.be/Jq3oAfCR94o
 
 ### Assets
-- Sprites e efeitos sonoros: Assets originais do projeto
+- Sprites e efeitos sonoros: obtidos em itch.io
 
 ---
 
