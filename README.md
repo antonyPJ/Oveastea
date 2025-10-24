@@ -19,8 +19,8 @@ Oveastea é um jogo de sobrevivência onde o objetivo é resistir o máximo de t
 2. **Instalação**:
    ```bash
    # Clone o repositório
-   git clone https://github.com/SEU_USUARIO/NOME_DO_REPO.git
-   cd NOME_DO_REPO
+   git clone https://github.com/antonyPJ/Oveastea
+   cd Oveastea
    
    # Abra o projeto no Godot
    # Execute o arquivo project.godot
