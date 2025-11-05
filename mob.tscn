@@ -1,9 +1,9 @@
 [gd_scene load_steps=15 format=3 uid="uid://dlofuqmjsiyk"]
 
-[ext_resource type="Texture2D" uid="uid://c8j5v5ntp8806" path="res://artwork/TDS/sEnemy_strip7.png" id="1_5vr6f"]
+[ext_resource type="Texture2D" uid="uid://c4hliv7weq383" path="res://artwork/TDS/sEnemy_strip7.png" id="1_5vr6f"]
 [ext_resource type="Script" uid="uid://sw7m72bjmkq4" path="res://mob.gd" id="1_6psrb"]
-[ext_resource type="Texture2D" uid="uid://di41l70v1phor" path="res://artwork/TDS/sEnemyDead.png" id="3_j6hrw"]
-[ext_resource type="AudioStream" uid="uid://dsckcbkyljncw" path="res://artwork/TDS/aDeath.wav" id="4_fnls6"]
+[ext_resource type="Texture2D" uid="uid://qimdqttwwk42" path="res://artwork/TDS/sEnemyDead.png" id="3_j6hrw"]
+[ext_resource type="AudioStream" uid="uid://ba44iof73j2kt" path="res://artwork/TDS/aDeath.wav" id="4_fnls6"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_j1abo"]
 atlas = ExtResource("1_5vr6f")

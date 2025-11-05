@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://bo2k8ydthg53k"]
 
 [ext_resource type="Script" uid="uid://btycq2w66ee12" path="res://blood_surface.gd" id="1_blood_surface"]
-[ext_resource type="Texture2D" uid="uid://bdubnaltd8ve2" path="res://artwork/TDS/block.png" id="1_cu261"]
+[ext_resource type="Texture2D" uid="uid://cyuk7rjlj8bqu" path="res://artwork/TDS/block.png" id="1_cu261"]
 
 [node name="BloodSurface" type="Sprite2D"]
 z_index = 4096

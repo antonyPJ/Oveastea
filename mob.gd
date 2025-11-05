@@ -57,7 +57,7 @@ func spawn_blood(bullet_direction: Vector2):
 		if bullet_direction != Vector2.ZERO:
 			blood_instance.bullet_direction = bullet_direction
 		
-		get_tree().current_scene.add_child(blood_instance)
+		get_tree().current_scene.call_deferred("add_child", blood_instance)
 
 func spawn_blood_decal():
 	# Cria um sprite de sangue no chão
@@ -94,12 +94,10 @@ func spawn_blood_decal():
 	var random_index = randi() % blood_textures.size()
 	var texture_path = blood_textures[random_index]
 	
-	# Tenta carregar a textura
 	if ResourceLoader.exists(texture_path):
-		blood_decal.texture = load(texture_path)
+		blood_decal.texture = load(texture_path) as Texture2D
 	else:
-		# Fallback: usa a textura de sangue existente
-		blood_decal.texture = load("res://artwork/TDS/blood.png")
+		blood_decal.texture = preload("res://artwork/TDS/blood.png")
 	
 	# Configura o sprite
 	blood_decal.global_position = global_position
@@ -112,8 +110,21 @@ func spawn_blood_decal():
 	var random_scale = randf_range(3.0, 5.0)
 	blood_decal.scale = Vector2(random_scale, random_scale)
 	
-	# Adiciona à cena
-	get_tree().current_scene.add_child(blood_decal)
+	# Adiciona ao grupo para controle
+	blood_decal.add_to_group("blood_decals")
+	
+	# Adiciona um timer para remover o decal após 60 segundos
+	var cleanup_timer = Timer.new()
+	cleanup_timer.wait_time = 60.0  # Remove após 60 segundos
+	cleanup_timer.one_shot = true
+	cleanup_timer.timeout.connect(func(): blood_decal.queue_free())
+	blood_decal.add_child(cleanup_timer)
+	
+	# Inicia o timer quando o timer entrar na árvore (isso garante que está na árvore)
+	cleanup_timer.tree_entered.connect(func(): cleanup_timer.start())
+	
+	# Adiciona à cena usando call_deferred para evitar erro durante callbacks físicos
+	get_tree().current_scene.call_deferred("add_child", blood_decal)
 
 
 func _on_attack_zone_body_entered(body):

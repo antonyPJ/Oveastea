@@ -1,10 +1,10 @@
 [gd_scene load_steps=21 format=3 uid="uid://ce8snnay0wu8w"]
 
 [ext_resource type="Script" uid="uid://ceh7r02rqkfue" path="res://player.gd" id="1_1sxig"]
-[ext_resource type="Texture2D" uid="uid://btgw6i1sudvrj" path="res://artwork/TDS/sPlayerIdle_strip4.png" id="2_jlhcs"]
-[ext_resource type="Texture2D" uid="uid://c3q6wo8dywv2v" path="res://artwork/TDS/sPlayerRun_strip7.png" id="3_bh03k"]
-[ext_resource type="Texture2D" uid="uid://cf150by2nrvno" path="res://artwork/TDS/sGun.png" id="4_w0maw"]
-[ext_resource type="AudioStream" uid="uid://drrdsqjeai45x" path="res://artwork/TDS/aBullet.wav" id="5_6rnqa"]
+[ext_resource type="Texture2D" uid="uid://4ngr1ybwfe0s" path="res://artwork/TDS/sPlayerIdle_strip4.png" id="2_jlhcs"]
+[ext_resource type="Texture2D" uid="uid://bemt3nehhw4do" path="res://artwork/TDS/sPlayerRun_strip7.png" id="3_bh03k"]
+[ext_resource type="Texture2D" uid="uid://c38yxw4i817iq" path="res://artwork/TDS/sGun.png" id="4_w0maw"]
+[ext_resource type="AudioStream" uid="uid://dx8io6r1ahjr6" path="res://artwork/TDS/aBullet.wav" id="5_6rnqa"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_fk1g0"]
 radius = 12.0416

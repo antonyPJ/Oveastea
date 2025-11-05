@@ -14,8 +14,9 @@ func _ready() -> void:
 	surface_image = Image.create(5000, 5000, false, Image.FORMAT_RGBA8)
 	surface_image.fill(Color(0, 0, 0, 0))
 	
-	# Carrega nossa imagem de sangue, garante que os formatos coincidam
-	blood_image.load("res://artwork/TDS/blood.png")
+	# Carrega a imagem de sangue de forma compatível com exportação
+	var tex_blood := load("res://artwork/TDS/blood.png") as Texture2D
+	blood_image = tex_blood.get_image()
 	blood_image.convert(Image.FORMAT_RGBA8)
 	blood_size = blood_image.get_size()
 	
