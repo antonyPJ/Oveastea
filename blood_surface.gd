@@ -1,75 +1,112 @@
-extends Sprite2D
+extends Node2D
 
-# Imagens
-var surface_image : Image = Image.new()
-var blood_image : Image = Image.new()
+# Tamanho de cada chunk (ajuste conforme necessário)
+const CHUNK_SIZE = 512
+const CHUNK_TEXTURE_SIZE = 512
 
-# O que usamos para converter imagens em texturas
-var surface_texture : ImageTexture = ImageTexture.new()
+# Dicionário de chunks ativos
+var chunks: Dictionary = {}  # Key: Vector2i (chunk coords), Value: BloodChunk
+var blood_image: Image
 
-var blood_size : Vector2
+class BloodChunk:
+	var sprite: Sprite2D
+	var image: Image
+	var dirty: bool = false
+	var last_update: float = 0.0
+	
+	func _init(parent: Node2D, chunk_pos: Vector2):
+		sprite = Sprite2D.new()
+		sprite.z_index = -1
+		sprite.centered = false
+		sprite.global_position = chunk_pos
+		parent.add_child(sprite)
+		
+		# Cria imagem menor para este chunk
+		image = Image.create(CHUNK_TEXTURE_SIZE, CHUNK_TEXTURE_SIZE, false, Image.FORMAT_RGBA8)
+		image.fill(Color(0, 0, 0, 0))
 
 func _ready() -> void:
-	# Cria imagem transparente muito maior para cobrir paredes do mapa
-	surface_image = Image.create(5000, 5000, false, Image.FORMAT_RGBA8)
-	surface_image.fill(Color(0, 0, 0, 0))
-	
-	# Carrega a imagem de sangue de forma compatível com exportação
 	var tex_blood := load("res://artwork/TDS/blood.png") as Texture2D
 	blood_image = tex_blood.get_image()
 	blood_image.convert(Image.FORMAT_RGBA8)
-	blood_size = blood_image.get_size()
+
+func draw_blood(draw_pos: Vector2):
+	# Calcula qual chunk essa posição pertence
+	var chunk_coord = Vector2i(
+		floor(draw_pos.x / CHUNK_SIZE),
+		floor(draw_pos.y / CHUNK_SIZE)
+	)
 	
-	# Posiciona a superfície para cobrir paredes do mapa
-	global_position = Vector2(-2500, -2500)
+	# Cria chunk se não existir
+	if not chunks.has(chunk_coord):
+		var chunk_world_pos = Vector2(chunk_coord) * CHUNK_SIZE
+		chunks[chunk_coord] = BloodChunk.new(self, chunk_world_pos)
 	
-func draw_blood(draw_pos : Vector2):
-	# Ajusta a posição para a nova posição da superfície
-	var adjusted_pos = draw_pos - global_position
+	var chunk = chunks[chunk_coord]
 	
-	# GORY: Aumenta MUITO o tamanho do sangue (de 2x para 3x)
-	var scaled_blood_size = blood_size * 3.0
-	var scaled_pos = adjusted_pos - (scaled_blood_size / 2)
+	# Posição local dentro do chunk
+	var local_pos = draw_pos - (Vector2(chunk_coord) * CHUNK_SIZE)
 	
-	# Verifica se a posição está dentro dos limites da imagem
-	if scaled_pos.x >= 0 and scaled_pos.y >= 0 and scaled_pos.x < surface_image.get_width() and scaled_pos.y < surface_image.get_height():
-		# GORY: Mais camadas com maior variação para sangue mais denso e irregular
-		for i in range(8):  # Aumentado de 5 para 8 camadas
-			var offset = Vector2(randf_range(-12, 12), randf_range(-12, 12))  # Maior espalhamento
-			var final_pos = scaled_pos + offset
-			
-			# GORY: Varia a opacidade de cada camada para profundidade
-			var alpha_mult = randf_range(0.6, 1.0)
-			var tinted_blood = blood_image.duplicate()
-			
-			# Aplica uma leve variação de cor vermelha para realismo
-			for x in range(tinted_blood.get_width()):
-				for y in range(tinted_blood.get_height()):
-					var pixel = tinted_blood.get_pixel(x, y)
-					if pixel.a > 0:  # Só modifica pixels não transparentes
-						pixel.r = clamp(pixel.r * randf_range(0.85, 1.0), 0, 1)
-						pixel.a *= alpha_mult
-						tinted_blood.set_pixel(x, y, pixel)
-			
-			surface_image.blit_rect(tinted_blood, Rect2i(Vector2(0, 0), blood_size), final_pos)
+	# GORY: Desenha múltiplas camadas de sangue
+	for i in range(6):
+		var offset = Vector2(randf_range(-10, 10), randf_range(-10, 10))
+		var scaled_size = blood_image.get_size() * randf_range(2.5, 3.5)
+		var final_pos = local_pos + offset - (scaled_size / 2)
+		
+		# Cria versão variada do sangue
+		var tinted_blood = blood_image.duplicate()
+		var alpha_mult = randf_range(0.6, 1.0)
+		
+		# Otimização: modifica apenas pixels não-transparentes
+		for x in range(tinted_blood.get_width()):
+			for y in range(tinted_blood.get_height()):
+				var pixel = tinted_blood.get_pixel(x, y)
+				if pixel.a > 0:
+					pixel.r = clamp(pixel.r * randf_range(0.85, 1.0), 0, 1)
+					pixel.a *= alpha_mult
+					tinted_blood.set_pixel(x, y, pixel)
+		
+		# Verifica limites antes de blitar
+		if final_pos.x >= 0 and final_pos.y >= 0:
+			chunk.image.blit_rect(
+				tinted_blood,
+				Rect2i(Vector2.ZERO, blood_image.get_size()),
+				final_pos
+			)
 	
+	chunk.dirty = true
+
 var update_timer = 0.0
-var update_interval = 0.08  # GORY: Atualiza mais rápido (de 0.1 para 0.08) para feedback mais imediato
+const UPDATE_INTERVAL = 0.1
 
 func _physics_process(delta: float) -> void:
 	update_timer += delta
 	
-	# Só atualiza a textura a cada intervalo para reduzir lag
-	if update_timer >= update_interval:
+	if update_timer >= UPDATE_INTERVAL:
 		update_timer = 0.0
-		texture = ImageTexture.create_from_image(surface_image)
+		
+		# Atualiza apenas chunks que foram modificados
+		for chunk in chunks.values():
+			if chunk.dirty:
+				chunk.sprite.texture = ImageTexture.create_from_image(chunk.image)
+				chunk.dirty = false
+				chunk.last_update = Time.get_ticks_msec() / 1000.0
+
+func clear_blood():
+	for chunk in chunks.values():
+		chunk.image.fill(Color(0, 0, 0, 0))
+		chunk.dirty = true
+
+# Opcional: Remove chunks inativos para economizar memória
+func cleanup_old_chunks(max_age_seconds: float = 60.0):
+	var current_time = Time.get_ticks_msec() / 1000.0
+	var to_remove = []
 	
-func SaveBloodTexture():
-	surface_image.save_png("res://BloodTexture.png")
+	for coord in chunks.keys():
+		var chunk = chunks[coord]
+		if current_time - chunk.last_update > max_age_seconds:
+			to_remove.append(coord)
 	
-func LoadBloodTexture():
-	surface_image = Image.load_from_file("res://BloodTexture.png")
-	texture = ImageTexture.create_from_image(surface_image)
-	
-func ClearTexture():
-	surface_image.fill(Color(0, 0, 0, 0))
+	for coord in to_remove:
+		chunks[coord].sprite.queue_free()
+		chunks.erase(coord)

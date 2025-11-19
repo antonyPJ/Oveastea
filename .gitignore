@@ -38,3 +38,6 @@ Thumbs.db
 # Build outputs
 build/
 dist/
+
+# Claude Code
+CLAUDE.md
