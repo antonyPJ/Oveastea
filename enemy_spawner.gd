@@ -3,6 +3,16 @@ extends Node2D
 # Referências
 @onready var player = get_tree().get_first_node_in_group('player')
 var mob_scene = preload("res://mob.tscn")
+var boss_scene = preload("res://boss_mob.tscn")
+
+# Sistema de Boss
+var boss_wave_interval = 3  # Boss aparece a cada 3 waves (waves 3, 6, 9, etc)
+
+# Sistema de Heat Zone - incentiva movimento
+var player_last_position = Vector2.ZERO
+var player_stationary_time = 0.0
+var player_heat_penalty = 0  # Reduz distância segura de spawn
+var heat_zone_radius = 200  # Raio para considerar "parado"
 
 # Sistema de Waves
 var current_wave = 0
@@ -10,12 +20,13 @@ var enemies_in_wave = 8  # Aumentado de 5 para 8
 var enemies_spawned = 0
 var enemies_alive = 0
 var wave_active = false
-var max_enemies_on_screen = 10  # Limite de inimigos simultâneos
+var max_enemies_on_screen = 15  # Limite de inimigos simultâneos (aumentado de 10 para 15)
+var max_enemies_per_wave = 30  # CAP máximo de inimigos por wave
 
 # Dificuldade progressiva
-var base_enemy_speed = 350  # Velocidade base dos inimigos 
-var speed_increase_per_wave = 30  # Aumenta 30 de velocidade por wave
-var enemies_increase_per_wave = 2  # Aumenta 2 inimigos por wave
+var base_enemy_speed = 350  # Velocidade base dos inimigos
+var speed_increase_per_wave = 35  # Aumenta 35 de velocidade por wave (aumentado)
+var enemies_increase_per_wave = 3  # Aumenta 3 inimigos por wave (aumentado)
 
 # Spawn settings - INTERVALO REDUZIDO
 var base_spawn_interval = 1.0  # Reduzido de 1.5 para 1.0
@@ -49,7 +60,10 @@ func _process(delta):
 	if not player:
 		player = get_tree().get_first_node_in_group('player')
 		return
-	
+
+	# Sistema de Heat Zone - rastreia movimento do player
+	update_player_heat(delta)
+
 	# Aguarda delay entre waves
 	if waiting_for_next_wave:
 		wave_delay_timer -= delta
@@ -59,9 +73,11 @@ func _process(delta):
 	
 	# Spawna inimigos durante a wave - RESPEITANDO LIMITE NA TELA
 	if wave_active and enemies_spawned < enemies_in_wave:
-		# Só spawna se não atingiu o limite de inimigos na tela
-		if enemies_alive < max_enemies_on_screen:
-			spawn_timer -= delta
+		# Só spawna se não atingiu o limite de inimigos na tela (dinâmico por wave)
+		if enemies_alive < get_max_enemies_on_screen():
+			# Heat zone ACELERA o spawn (quanto mais parado, mais rápido spawna)
+			var heat_multiplier = 1.0 + (player_heat_penalty / 300.0) * 0.8  # Max +80% velocidade
+			spawn_timer -= delta * heat_multiplier
 			if spawn_timer <= 0:
 				spawn_enemy()
 				spawn_timer = spawn_interval
@@ -74,16 +90,50 @@ func _process(delta):
 func start_new_wave():
 	current_wave += 1
 	enemies_in_wave = 8 + (current_wave - 1) * enemies_increase_per_wave
+
+	# Aplica CAP de 30 inimigos por wave
+	enemies_in_wave = min(enemies_in_wave, max_enemies_per_wave)
+
 	enemies_spawned = 0
 	enemies_alive = 0
 	wave_active = true
 	waiting_for_next_wave = false
-	
-	# Reduz progressivamente o intervalo de spawn (mínimo 0.3s)
-	spawn_interval = max(0.3, base_spawn_interval - (current_wave - 1) * 0.05)
+
+	# Sistema de spawn interval balanceado com soft cap
+	spawn_interval = calculate_spawn_interval()
 	spawn_timer = 0.3  # Primeiro spawn rápido
-	
+
 	update_wave_display()
+
+func calculate_spawn_interval() -> float:
+	# Sistema de spawn interval balanceado
+	# Waves 1-10: Redução normal (0.03s por wave)
+	# Waves 11+: Redução muito mais lenta (soft cap)
+
+	var interval: float
+
+	if current_wave <= 10:
+		# Waves iniciais: redução linear de 0.03s por wave
+		interval = base_spawn_interval - (current_wave - 1) * 0.03
+	else:
+		# Waves tardias (11+): soft cap - redução muito mais lenta
+		var base_at_wave_10 = base_spawn_interval - 9 * 0.03  # 1.0 - 0.27 = 0.73
+		var waves_after_10 = current_wave - 10
+		# Redução de apenas 0.01s por wave após wave 10
+		interval = base_at_wave_10 - (waves_after_10 * 0.01)
+
+	# Mínimo absoluto de 0.5s (antes era 0.2s)
+	return max(0.5, interval)
+
+func get_max_enemies_on_screen() -> int:
+	# Aumenta gradualmente o limite de inimigos na tela em waves tardias
+	# Para compensar spawn_interval mais lento e manter o desafio
+	if current_wave <= 10:
+		return 15
+	elif current_wave <= 20:
+		return 18  # +3 inimigos simultâneos
+	else:
+		return 20  # +5 inimigos simultâneos para waves muito tardias
 
 func end_wave():
 	wave_active = false
@@ -93,88 +143,214 @@ func end_wave():
 func spawn_enemy():
 	if not player:
 		return
-	
+
 	var spawn_pos = get_spawn_position()
-	var enemy = mob_scene.instantiate()
-	
+
+	# Incrementa ANTES do await para controle correto de spawn
+	enemies_spawned += 1
+
+	# NOVO: Cria indicador visual antes do spawn
+	create_spawn_indicator(spawn_pos)
+
+	# Agenda o spawn real após delay
+	await get_tree().create_timer(0.5).timeout
+
+	# Verifica se a wave ainda está ativa
+	if not wave_active:
+		return
+
+	var enemy
+
+	# Verifica se deve spawnar um boss (a cada 3 waves, spawna 1 boss)
+	if should_spawn_boss():
+		enemy = boss_scene.instantiate()
+	else:
+		enemy = mob_scene.instantiate()
+
 	# Define posição
 	enemy.global_position = spawn_pos
-	
+
 	# Adiciona à cena PRIMEIRO
 	get_tree().current_scene.add_child(enemy)
-	
+
 	# Ajusta velocidade baseado na wave
-	enemy.speed = get_current_enemy_speed()
-	
+	if enemy.has_method("is_boss"):
+		# Boss é mais lento (70% da velocidade normal)
+		enemy.speed = get_current_enemy_speed() * 0.7
+	else:
+		enemy.speed = get_current_enemy_speed()
+
 	# Conecta à função de tracking quando o inimigo morrer
 	enemy.tree_exited.connect(_on_enemy_died)
-	
-	enemies_spawned += 1
+
 	enemies_alive += 1
 
+func create_spawn_indicator(pos: Vector2):
+	# Cria indicador visual de spawn
+	var indicator = Node2D.new()
+	indicator.global_position = pos
+
+	# Anexa o script
+	var script = load("res://spawn_indicator.gd")
+	indicator.set_script(script)
+
+	get_tree().current_scene.add_child(indicator)
+
+func should_spawn_boss() -> bool:
+	# Boss spawna nas waves 3, 6, 9, etc
+	if current_wave % boss_wave_interval == 0:
+		# 20% de chance de spawnar boss nessa wave
+		return randf() < 0.2
+	return false
+
 func get_spawn_position() -> Vector2:
-	# Limites do mapa (ajuste conforme seu mapa)
-	var map_bounds = Rect2(-1400, -1400, 2800, 2800)  # Área jogável do mapa
-	
-	# Distância mínima segura do player
-	var safe_distance_from_player = 700  # Distância mínima do player
-	var max_attempts = 20  # Tentativas máximas para encontrar uma posição válida
-	
-	# Pega a câmera para spawnar fora da visão
+	# Limites do mapa
+	var map_bounds = Rect2(-1400, -1400, 2800, 2800)
+
 	var camera = get_viewport().get_camera_2d()
-	
+	if not camera:
+		# Fallback sem câmera
+		return get_fallback_spawn_position(map_bounds)
+
+	# Pega informações da viewport
+	var viewport_size = get_viewport().get_visible_rect().size
+	var cam_pos = camera.global_position
+	var cam_zoom = camera.zoom
+	var screen_size = viewport_size / cam_zoom
+
+	# Calcula bordas visíveis da tela
+	var screen_left = cam_pos.x - screen_size.x / 2
+	var screen_right = cam_pos.x + screen_size.x / 2
+	var screen_top = cam_pos.y - screen_size.y / 2
+	var screen_bottom = cam_pos.y + screen_size.y / 2
+
+	# Offset para spawnar FORA da tela
+	var offscreen_offset = 350
+
+	# Determina quais lados têm ESPAÇO no mapa para spawn offscreen
+	var valid_sides = []
+
+	# CIMA: verifica se há espaço acima da tela
+	if screen_top - offscreen_offset > map_bounds.position.y + 100:
+		valid_sides.append(0)  # Topo
+
+	# DIREITA: verifica se há espaço à direita da tela
+	if screen_right + offscreen_offset < map_bounds.end.x - 100:
+		valid_sides.append(1)  # Direita
+
+	# BAIXO: verifica se há espaço abaixo da tela
+	if screen_bottom + offscreen_offset < map_bounds.end.y - 100:
+		valid_sides.append(2)  # Baixo
+
+	# ESQUERDA: verifica se há espaço à esquerda da tela
+	if screen_left - offscreen_offset > map_bounds.position.x + 100:
+		valid_sides.append(3)  # Esquerda
+
+	# Se não há lados válidos (player muito na borda), usa todos
+	if valid_sides.size() == 0:
+		valid_sides = [0, 1, 2, 3]
+
+	# Pega direção que o player está mirando
+	var player_aim_direction = get_player_aim_direction()
+
+	var max_attempts = 30
+
 	for attempt in range(max_attempts):
+		# Escolhe um lado válido aleatório
+		var side = valid_sides[randi() % valid_sides.size()]
 		var spawn_pos = Vector2.ZERO
-		
-		if not camera:
-			# Fallback: spawna ao redor do player em círculo
-			var angle = randf() * TAU
-			var distance = randf_range(safe_distance_from_player, safe_distance_from_player + 300)
-			spawn_pos = player.global_position + Vector2(cos(angle), sin(angle)) * distance
-		else:
-			# Pega os limites da tela
-			var viewport_size = get_viewport().get_visible_rect().size
-			var cam_pos = camera.global_position
-			var cam_zoom = camera.zoom
-			
-			# Calcula o tamanho real da tela no mundo
-			var screen_size = viewport_size / cam_zoom
-			
-			# Escolhe um lado aleatório (0=cima, 1=direita, 2=baixo, 3=esquerda)
-			var side = randi() % 4
-			
-			# Offset maior para spawnar bem fora da tela
-			var offset = randf_range(300, 500)
-			
-			match side:
-				0:  # Cima
-					spawn_pos.x = cam_pos.x + randf_range(-screen_size.x/2, screen_size.x/2)
-					spawn_pos.y = cam_pos.y - screen_size.y/2 - offset
-				1:  # Direita
-					spawn_pos.x = cam_pos.x + screen_size.x/2 + offset
-					spawn_pos.y = cam_pos.y + randf_range(-screen_size.y/2, screen_size.y/2)
-				2:  # Baixo
-					spawn_pos.x = cam_pos.x + randf_range(-screen_size.x/2, screen_size.x/2)
-					spawn_pos.y = cam_pos.y + screen_size.y/2 + offset
-				3:  # Esquerda
-					spawn_pos.x = cam_pos.x - screen_size.x/2 - offset
-					spawn_pos.y = cam_pos.y + randf_range(-screen_size.y/2, screen_size.y/2)
-		
-		# Garante que o spawn está DENTRO dos limites do mapa
+
+		# Spawna no lado escolhido (SEMPRE offscreen)
+		match side:
+			0:  # CIMA
+				spawn_pos.x = randf_range(screen_left, screen_right)
+				spawn_pos.y = screen_top - offscreen_offset
+			1:  # DIREITA
+				spawn_pos.x = screen_right + offscreen_offset
+				spawn_pos.y = randf_range(screen_top, screen_bottom)
+			2:  # BAIXO
+				spawn_pos.x = randf_range(screen_left, screen_right)
+				spawn_pos.y = screen_bottom + offscreen_offset
+			3:  # ESQUERDA
+				spawn_pos.x = screen_left - offscreen_offset
+				spawn_pos.y = randf_range(screen_top, screen_bottom)
+
+		# Clamp para garantir dentro do mapa
 		spawn_pos.x = clamp(spawn_pos.x, map_bounds.position.x + 100, map_bounds.end.x - 100)
 		spawn_pos.y = clamp(spawn_pos.y, map_bounds.position.y + 100, map_bounds.end.y - 100)
-		
-		# CRÍTICO: Verifica se está longe o suficiente do player
-		var distance_to_player = spawn_pos.distance_to(player.global_position)
-		if distance_to_player >= safe_distance_from_player:
+
+		# Verifica se não está na direção que o player está mirando
+		var to_spawn = (spawn_pos - player.global_position).normalized()
+		var dot_product = to_spawn.dot(player_aim_direction)
+		var is_in_front = dot_product > 0.3  # Cone frontal
+
+		if not is_in_front:
 			return spawn_pos
-	
-	# Se não encontrou posição válida após todas as tentativas, usa fallback seguro
+
+	# Fallback: spawna em qualquer lado válido (ignorando direção da mira)
+	var side = valid_sides[randi() % valid_sides.size()]
+	var fallback_pos = Vector2.ZERO
+
+	match side:
+		0:  # CIMA
+			fallback_pos.x = randf_range(screen_left, screen_right)
+			fallback_pos.y = screen_top - offscreen_offset
+		1:  # DIREITA
+			fallback_pos.x = screen_right + offscreen_offset
+			fallback_pos.y = randf_range(screen_top, screen_bottom)
+		2:  # BAIXO
+			fallback_pos.x = randf_range(screen_left, screen_right)
+			fallback_pos.y = screen_bottom + offscreen_offset
+		3:  # ESQUERDA
+			fallback_pos.x = screen_left - offscreen_offset
+			fallback_pos.y = randf_range(screen_top, screen_bottom)
+
+	fallback_pos.x = clamp(fallback_pos.x, map_bounds.position.x + 100, map_bounds.end.x - 100)
+	fallback_pos.y = clamp(fallback_pos.y, map_bounds.position.y + 100, map_bounds.end.y - 100)
+	return fallback_pos
+
+func get_player_aim_direction() -> Vector2:
+	# Pega direção que o player está mirando
+	if not player:
+		return Vector2.RIGHT
+
+	var mouse_pos = get_viewport().get_mouse_position()
+	var camera = get_viewport().get_camera_2d()
+	if not camera:
+		return Vector2.RIGHT
+
+	var world_mouse_pos = camera.global_position + (mouse_pos - get_viewport().get_visible_rect().size / 2) / camera.zoom
+	return (world_mouse_pos - player.global_position).normalized()
+
+func get_fallback_spawn_position(map_bounds: Rect2) -> Vector2:
+	# Fallback quando não há câmera
 	var angle = randf() * TAU
-	var emergency_pos = player.global_position + Vector2(cos(angle), sin(angle)) * safe_distance_from_player
-	emergency_pos.x = clamp(emergency_pos.x, map_bounds.position.x + 100, map_bounds.end.x - 100)
-	emergency_pos.y = clamp(emergency_pos.y, map_bounds.position.y + 100, map_bounds.end.y - 100)
-	return emergency_pos
+	var distance = 700
+	var pos = player.global_position + Vector2(cos(angle), sin(angle)) * distance
+	pos.x = clamp(pos.x, map_bounds.position.x + 100, map_bounds.end.x - 100)
+	pos.y = clamp(pos.y, map_bounds.position.y + 100, map_bounds.end.y - 100)
+	return pos
+
+
+func update_player_heat(delta: float):
+	# Rastreia se o player está se movendo ou ficando parado
+	var current_pos = player.global_position
+	var distance_moved = current_pos.distance_to(player_last_position)
+
+	# Se o player se moveu significativamente
+	if distance_moved > heat_zone_radius:
+		# Reseta o timer e penalidade
+		player_stationary_time = 0.0
+		player_heat_penalty = max(0, player_heat_penalty - 50)  # Reduz penalidade gradualmente
+		player_last_position = current_pos
+	else:
+		# Player está parado na mesma área
+		player_stationary_time += delta
+
+		# Aumenta penalidade progressivamente (max 300 = spawns a 400px)
+		if player_stationary_time > 3.0:  # Após 3 segundos parado
+			player_heat_penalty = min(300, player_heat_penalty + delta * 30)  # +30 por segundo
+
 
 func get_current_enemy_speed() -> float:
 	return base_enemy_speed + (current_wave - 1) * speed_increase_per_wave

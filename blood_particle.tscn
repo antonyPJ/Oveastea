@@ -1,12 +1,14 @@
 [gd_scene load_steps=4 format=3 uid="uid://djfyoya6r06r6"]
 
 [ext_resource type="Script" uid="uid://w5qs27kqpbon" path="res://blood_particle.gd" id="1_blood_particle"]
-[ext_resource type="Texture2D" uid="uid://bd14067g3vu01" path="res://artwork/TDS/blood.png" id="2_blood_texture"]
+[ext_resource type="Texture2D" uid="uid://csn6eptkishal" path="res://artwork/TDS/blood.png" id="2_blood_texture"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_blood"]
 size = Vector2(16, 16)
 
 [node name="BloodParticle" type="Area2D"]
+collision_layer = 0
+collision_mask = 10
 script = ExtResource("1_blood_particle")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

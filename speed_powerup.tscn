@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://b0y4dh5qa8d6p"]
+
+[ext_resource type="Script" uid="uid://dvgrhn2ei3uay" path="res://speed_powerup.gd" id="1_wg43s"]
+[ext_resource type="Texture2D" uid="uid://coca7j5gdvgy5" path="res://artwork/TDS/pixel-art-yellow-thunder-icon-3_41992-1848-removebg-preview.png" id="2_3d23n"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_rs1hw"]
+radius = 49.0
+
+[node name="SpeedPowerup" type="Area2D"]
+collision_layer = 16
+script = ExtResource("1_wg43s")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(1.5, 1)
+scale = Vector2(0.2, 0.2)
+texture = ExtResource("2_3d23n")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(4, 2)
+shape = SubResource("CircleShape2D_rs1hw")

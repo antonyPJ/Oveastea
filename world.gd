@@ -30,8 +30,11 @@ func _process(delta):
 	pass
 
 # Função para adicionar pontos quando inimigo morre
-func add_score():
-	score += score_per_kill
+func add_score(points: int = 0):
+	if points > 0:
+		score += points  # Pontos personalizados (ex: boss)
+	else:
+		score += score_per_kill  # Pontos normais
 	update_score_display()
 
 # Atualiza o display do score
