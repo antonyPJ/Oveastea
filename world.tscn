@@ -28,7 +28,7 @@ size = Vector2(322.333, 20)
 size = Vector2(20, 285)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_pkg7o"]
-size = Vector2(5.81711, 20.5988)
+size = Vector2(5.81712, 20.6333)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_ic0uy"]
 
@@ -105,6 +105,7 @@ collision_layer = 8
 texture = ExtResource("3_8880l")
 
 [node name="SWall2" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(81.876, -69.2653)
 scale = Vector2(0.441646, 0.440587)
 texture = ExtResource("4_pkg7o")
@@ -112,6 +113,7 @@ region_enabled = true
 region_rect = Rect2(24, 3.5, 80, 124.5)
 
 [node name="SWall3" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(91.1107, 61.2417)
 scale = Vector2(0.442, 0.44)
 texture = ExtResource("4_pkg7o")
@@ -119,6 +121,7 @@ region_enabled = true
 region_rect = Rect2(256, 264, 120, 120)
 
 [node name="SWall4" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(-73.4412, -64.6804)
 scale = Vector2(0.441646, 0.440587)
 texture = ExtResource("4_pkg7o")
@@ -126,6 +129,7 @@ region_enabled = true
 region_rect = Rect2(136, 152, 112, 104)
 
 [node name="SWall5" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(-76.1316, 74.9146)
 scale = Vector2(0.441646, 0.440587)
 texture = ExtResource("4_pkg7o")
@@ -133,6 +137,7 @@ region_enabled = true
 region_rect = Rect2(128, 416, 120, 96)
 
 [node name="SWall6" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(5.74442, -66.1541)
 scale = Vector2(0.441646, 0.440587)
 texture = ExtResource("4_pkg7o")
@@ -140,6 +145,7 @@ region_enabled = true
 region_rect = Rect2(144, 280, 96, 96)
 
 [node name="SWall7" type="Sprite2D" parent="SMap/StaticBody2D"]
+z_index = 1
 position = Vector2(14.1792, 65.4991)
 scale = Vector2(0.441646, 0.440587)
 texture = ExtResource("4_pkg7o")
@@ -148,6 +154,7 @@ region_rect = Rect2(392, 264, 120, 120)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="SMap/StaticBody2D"]
 position = Vector2(-1.5, -149.667)
+scale = Vector2(1.00275, 1)
 shape = SubResource("RectangleShape2D_o8lj6")
 debug_color = Color(1, 0.337255, 0.4, 0.419608)
 
@@ -165,24 +172,24 @@ position = Vector2(150.333, 1.83333)
 shape = SubResource("RectangleShape2D_23n1t")
 
 [node name="CollisionShape2D6" type="CollisionShape2D" parent="SMap/StaticBody2D"]
-position = Vector2(-74.0229, -53.6384)
+position = Vector2(-74.0956, -53.301)
 shape = SubResource("RectangleShape2D_pkg7o")
 
 [node name="CollisionShape2D7" type="CollisionShape2D" parent="SMap/StaticBody2D"]
-position = Vector2(-75.1863, 84.9033)
+position = Vector2(-75.1863, 84.5752)
 shape = SubResource("RectangleShape2D_pkg7o")
 
 [node name="CollisionShape2D8" type="CollisionShape2D" parent="SMap/StaticBody2D"]
-position = Vector2(6.72605, -54.9374)
+position = Vector2(6.10798, -53.9741)
 scale = Vector2(1, 0.843856)
 shape = SubResource("RectangleShape2D_pkg7o")
 
 [node name="CollisionShape2D9" type="CollisionShape2D" parent="SMap/StaticBody2D"]
-position = Vector2(11.0525, 81.4236)
+position = Vector2(10.8889, 81.5506)
 shape = SubResource("RectangleShape2D_pkg7o")
 
 [node name="CollisionShape2D10" type="CollisionShape2D" parent="SMap/StaticBody2D"]
-position = Vector2(92.4923, 79.4177)
+position = Vector2(93.1103, 78.157)
 shape = SubResource("RectangleShape2D_pkg7o")
 
 [node name="CollisionShape2D11" type="CollisionShape2D" parent="SMap/StaticBody2D"]
@@ -197,9 +204,9 @@ show_behind_parent = true
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -1740.0
+offset_left = -1795.0
 offset_top = -1908.0
-offset_right = -676.0
+offset_right = -731.0
 offset_bottom = -844.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -216,6 +223,7 @@ position_smoothing_enabled = true
 
 [node name="BloodSurface" parent="." groups=["blood_surface"] instance=ExtResource("6_blood_surface")]
 position = Vector2(2, 0)
+scale = Vector2(0.996904, 1)
 
 [node name="EnemySpawner" type="Node2D" parent="."]
 script = ExtResource("9_ioo17")

@@ -46,7 +46,7 @@ func kill(bullet_direction: Vector2 = Vector2.ZERO):
 func spawn_blood(bullet_direction: Vector2):
 	# Carrega a cena da partícula de sangue
 	var blood_scene = preload("res://blood_particle.tscn")
-	var blood_particles_count = 30  # Reduzido para melhor performance
+	var blood_particles_count = 55  # Aumentado para efeito mais sangrento
 	
 	# Cria partículas de sangue na posição do inimigo
 	for i in range(blood_particles_count):
@@ -101,14 +101,22 @@ func spawn_blood_decal():
 	
 	# Configura o sprite
 	blood_decal.global_position = global_position
-	blood_decal.z_index = -1  # Coloca abaixo de tudo
+	blood_decal.z_index = -1  # Entre o chão (-2) e as árvores (0)
 	
 	# Rotação aleatória para variedade
 	blood_decal.rotation = randf_range(0, TAU)
 	
 	# Escala aleatória para variedade (aumentada)
 	var random_scale = randf_range(3.0, 5.0)
-	blood_decal.scale = Vector2(random_scale, random_scale)
+
+	# Começa pequeno e cresce gradualmente
+	blood_decal.scale = Vector2(0.1, 0.1)  # Começa muito pequeno
+
+	# Cria animação de crescimento
+	var tween = blood_decal.create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(blood_decal, "scale", Vector2(random_scale, random_scale), randf_range(1.5, 2.5))  # Cresce em 1.5-2.5 segundos
 	
 	# Adiciona ao grupo para controle
 	blood_decal.add_to_group("blood_decals")

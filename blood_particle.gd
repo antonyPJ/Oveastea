@@ -112,6 +112,11 @@ func check_collision_ahead() -> void:
 	if result:
 		# Detectou colisão à frente! Marca como colidindo
 		if result.collider is StaticBody2D:
+			# Reduz drasticamente a velocidade antes de colidir
+			# Isso faz com que o sangue "escorra" mais devagar em superfícies verticais (árvores)
+			hspeed   # Reduz para 15% da velocidade original
+			vspeed *= 0.1
+
 			is_colliding = true
 			# Move partícula para o ponto de colisão
 			global_position = result.position

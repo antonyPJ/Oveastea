@@ -8,9 +8,19 @@ var health = 3  # Boss aguenta 3 tiros
 # Guarda a cor original do boss (configurada no editor)
 var original_color: Color
 
+# Sistema de rastro de sangue
+var is_bleeding = false
+var bleed_timer: Timer
+
 func _ready():
 	# Salva a cor original configurada no editor
 	original_color = $AnimatedSprite2D.modulate
+
+	# Configura o timer de sangramento
+	bleed_timer = Timer.new()
+	bleed_timer.wait_time = 0.3  # Solta gotinha a cada 0.3 segundos
+	bleed_timer.timeout.connect(_on_bleed_timer_timeout)
+	add_child(bleed_timer)
 
 func is_boss() -> bool:
 	return true
@@ -40,6 +50,12 @@ func kill(bullet_direction: Vector2 = Vector2.ZERO):
 	if health > 0:
 		# Spawn menos sangue para indicar que levou dano mas não morreu
 		spawn_blood(bullet_direction, 10)  # Apenas 10 partículas
+
+		# Ativa sistema de sangramento (rastro de sangue)
+		if not is_bleeding:
+			is_bleeding = true
+			bleed_timer.start()
+
 		return
 
 	# Morte do boss (mesma lógica do mob normal, mas com mais sangue)
@@ -49,6 +65,11 @@ func kill(bullet_direction: Vector2 = Vector2.ZERO):
 	set_collision_layer_value(3, false)
 	set_collision_mask_value(3, false)
 	dead = true
+
+	# Para o rastro de sangue quando morrer
+	if bleed_timer:
+		bleed_timer.stop()
+		is_bleeding = false
 
 	# Boss gera MUITO mais sangue quando morre
 	spawn_blood(bullet_direction, 60)  # Boss gera 60 partículas (2x mob normal)
@@ -129,14 +150,22 @@ func spawn_blood_decal():
 
 	# Configura o sprite
 	blood_decal.global_position = global_position
-	blood_decal.z_index = -1
+	blood_decal.z_index = -1  # Entre o chão (-2) e as árvores (0)
 
 	# Rotação aleatória
 	blood_decal.rotation = randf_range(0, TAU)
 
 	# Boss gera decal MAIOR
 	var random_scale = randf_range(5.0, 7.0)  # Maior que mob normal
-	blood_decal.scale = Vector2(random_scale, random_scale)
+
+	# Começa pequeno e cresce gradualmente
+	blood_decal.scale = Vector2(0.1, 0.1)  # Começa muito pequeno
+
+	# Cria animação de crescimento (boss cresce mais devagar para ficar mais dramático)
+	var tween = blood_decal.create_tween()
+	tween.set_ease(Tween.EASE_OUT)
+	tween.set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(blood_decal, "scale", Vector2(random_scale, random_scale), randf_range(2.5, 3.5))  # Cresce em 2.5-3.5 segundos (mais lento que mob normal)
 
 	blood_decal.add_to_group("blood_decals")
 
@@ -157,6 +186,13 @@ func spawn_powerup():
 	var powerup = powerup_scene.instantiate()
 	powerup.global_position = global_position
 	get_tree().current_scene.call_deferred("add_child", powerup)
+
+func _on_bleed_timer_timeout():
+	# Solta gotinhas de sangue enquanto o boss está ferido
+	if not dead and is_bleeding:
+		# Spawna 2-3 gotinhas pequenas de sangue
+		var drip_count = randi_range(2, 3)
+		spawn_blood(Vector2.DOWN, drip_count)  # Direção para baixo (gotejando)
 
 func _on_attack_zone_body_entered(body):
 	if body.is_in_group('player') and not dead:

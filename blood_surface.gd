@@ -16,7 +16,7 @@ class BloodChunk:
 	
 	func _init(parent: Node2D, chunk_pos: Vector2):
 		sprite = Sprite2D.new()
-		sprite.z_index = -1
+		sprite.z_index = -1  # Entre o chão (-2) e as árvores (0)
 		sprite.centered = false
 		sprite.global_position = chunk_pos
 		parent.add_child(sprite)
